@@ -1,0 +1,253 @@
+entity Policy{
+
+}
+/*CLIENT*/
+entity Member {
+   memberNumber String, //M1000
+   dependentNumber String, //01
+   //planno, policyno,clientno, 
+   memberClientCode String,//policyHolderNo String minlength(DEFAULT_MIN_LENGTH) maxlength(DEFAULT_MAX_LENGTH), //Owner
+   employeeNumber String,   
+   salary Integer, 
+   memberTerminationDate LocalDate,
+   memberJoinedDate LocalDate,
+   memberEffectiveDate LocalDate,
+   memberRelationship String,
+   memberVerificationNumber String,
+   tpaNumber String, //TPA
+   bpjsNumber String //? indonesia government medical card number  
+   //subsidiary Subsidiary
+}
+
+entity Subsidiary {
+	
+} 
+
+entity Claims{
+	
+}
+
+entity MaritalStatus {
+//MARRIED, SINGLE, DIVORCED, WIDOWED
+code String,
+description String
+}
+
+/*
+ * CLIENT, Names should be in list
+*/
+entity Person {
+   clientCode String,
+   firstName String,
+   surname String,   
+   //maritalStatus String, //link to MaritalStatus
+   age Integer,
+   //gender String,   
+   dateOfBirth LocalDate,
+   //employeeName String, //????
+   //---
+   occupationCode String,
+   clientStatus String, //Status
+   birthPlace String,
+   title String,
+   identityNumber String, //NRIC- HKID
+   nationality String,
+   recordType String, 
+   //language String, linked to language entity
+   roleflagIndicator String, // link to Indicator ????
+   //docnumber
+   sourceOfEvidence String, // ???
+   //vipIndicator Indicator,
+   deceasedDate LocalDate //deathdate
+}
+entity Gender {
+//MALE, FEMALE, OTHERS
+ code String,
+ description String
+}
+entity AddressType{
+  //RESIDENTIAL, BUSINESS, CORRESPONDENCE
+  code String,
+  description String
+}
+entity Address{
+   //addressType String, //link to AddressType
+   addressLine1 String,
+   addressLine2 String,
+   addressLine3 String,
+   addressLine4 String,
+   addressLine5 String,
+   postalCode String,
+   mailingStatus String, //enum?
+   countryCode String maxlength(3) //HK
+}
+
+entity Contact {   
+   email String,
+   faxNumber String,
+   phoneNumber1 String,
+   phoneNumber2 String,
+   mobileNumber String
+}
+
+entity BankAccount{
+ clientCode String,
+ bankName String,
+ bankCode String, //bankkey
+ accountNumber String,
+ accountHolderName String // 
+}
+
+entity Product{
+  productCode String
+  //policytypecode
+  baseProductCode String
+  displaySequence String
+  //claimType
+  //produceType
+  displayIndicator String // link to Indicator -- showIneFriend
+}
+//plan to provider or product to provider
+entity ProductPlan {
+ planNumber String,
+ planDescription String,
+ planEffectiveDate LocalDate,
+ planTerminationDate LocalDate,
+ productCode String,
+ productDescription String, 
+ //networkcode - provider
+ basicBenefit Integer, //basicbenefit*salarymultiplier=fixedSumAssured
+ salaryMultiplier Integer, //1 , 2, 3 
+ fixedSumInsured Integer,
+ //limitwhom???????
+ insuredClass String, //classins
+ selfMinimumAge Integer,
+ selfMaximumAge Integer,
+ spouseMinimumAge Integer,
+ spouseMaximumAge Integer,
+ childMinimumAge Integer,
+ childMaximumAge Integer
+}
+
+//PolicyProduct
+/**
+//entity Plan {
+// planNumber String,
+ //planDescription String,
+ //planEffectiveDate LocalDate,
+ //planTerminationDate LocalDate
+//}
+*/
+/*PolicyMemberProduct*/
+entity MemberBenefit {
+//plan,product,effectiveDate  
+  //apprem
+  excessSumInsured Integer, //xcessSI
+  productSumInsured Integer, //SumInsu
+  userSumInsured Integer, //userSI
+  memberBenefitEffectiveDate LocalDate,
+  memberBenefitTerminationDate LocalDate
+}
+//PolicyBenefitItem
+entity Benefit {
+  //plan, product, benefitcode
+  benefitCode String,
+  benefitDescription String,
+  benefitEffectiveDate LocalDate,
+  benefitTerminationDate LocalDate
+  //percentage??
+  //netlevel,providercap,claimtype,amountlife,amountyear,amountmonth
+}
+//PolicyBenefitItem
+//per process - confinement
+enum LimitType {
+AMOUNT_PER_LIFE, AMOUNT_PER_YEAR, AMOUNT_PER_MONTH, AMOUNT_PER_PROCEDURE, AMOUNT_PER_DAY, 
+VISIT_PER_LIFE, VISIT_PER_YEAR, VISIT_PER_MONTH, AMOUNT_PER_VISIT, 
+SELF_CLAIMABLE_PERCENTAGE, SELF_DEDUCTABLE_AMOUNT,
+DEPENDENT_CLAIMABLE_PERCENTAGE, DEPENDENT_DEDUCTABLE_AMOUNT, RELATIVE_AMOUNT_PER_PROCEDURE,
+PERIOD_PER_VISIT //no.of.hospitalized date
+}
+entity BenefitLimit{
+  //amountLife
+  limitType LimitType,
+  limitValue Integer
+  //relativeclaimlimit
+  //amountperprocedurerelative
+}
+
+entity ErrorDetails{
+	
+}
+
+entity ClaimType{
+	
+}
+
+/**
+ * One to many relationship.
+ */
+relationship OneToMany {
+
+  Policy to Member
+
+
+  /* One Subsidiary might have many members*/
+  Subsidiary to Member
+
+ /*each product plan will have many benefits*/
+  ProductPlan to Benefit
+
+  /*each benefit will have many benefit limits*/
+  Benefit to BenefitLimit  
+
+  
+  /*each member will have many claims including many non medical and medical claims*/
+  Member to Claims
+  
+  /*one error will have many errordetails*/
+  Error to ErrorDetails
+
+  Person{address} to Address
+}
+
+
+relationship ManyToOne {
+  /*Many product plan will be associated to one Product*/
+  ProductPlan to Product
+  /*many members will be associated to one person*/
+  Member to Person    
+  /*many members will be associated to one product plan*/
+  Member to ProductPlan
+  /*many product will have one claimtype*/
+  Product to ClaimType
+
+}
+entity Relationship {
+//SPOUCE, CHILD, EMPLOYEE, FRIENDS 
+code String,
+description String
+}
+/**
+ * One to one relationship.
+ */
+ relationship OneToOne {
+
+
+  Member{benefit} to MemberBenefit
+  Member{relationShip} to Relationship
+
+  Address{addressType} to AddressType
+
+  //Each person will be associated with one corresponding contact, bank account, gender & marital status
+  Person{contact} to Contact
+  Person{bankAccount} to BankAccount
+  Person{gender} to Gender
+  Person{maritalStatus} to MaritalStatus
+
+  
+  
+  //One status will have one Error object
+  Status{error} to Error
+
+
+ }
